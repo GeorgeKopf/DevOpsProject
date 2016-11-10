@@ -1,0 +1,23 @@
+---
+- hosts: ip-172-31-54-232.ec2.internal 
+  remote_user: ec2-user
+  tasks:
+  - command: git pull
+    args:
+      chdir: /home/ec2-user/DevOpsProject
+
+  - command: "{{item}}"
+    with_items:
+     - systemctl stop tomcat
+     - sleep 5
+     - cp /home/ec2-user/DevOpsProject/index.html /usr/share/tomcat/webapps/ROOT/index.html
+     - cp /home/ec2-user/DevOpsProject/server.xml /usr/share/tomcat/conf/server.xml
+     - cp /home/ec2-user/DevOpsProject/web.xml /usr/share/tomcat/conf/web.xml
+     - cp /home/ec2-user/DevOpsProject/keystore /usr/share/tomcat/conf/keystore
+     - rm -f /usr/share/tomcat/logs/*
+     - systemctl start tomcat
+     - sleep 33
+    become: yes
+    become_user: root
+
+  - command: curl -k https://52.201.234.9:8443/index.html
