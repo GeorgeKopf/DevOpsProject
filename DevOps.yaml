@@ -1,0 +1,10 @@
+---
+- hosts: ip-172-31-54-232.ec2.internal 
+  remote_user: ec2-user
+  tasks:
+  - command: git pull
+    args:
+      chdir: /home/ec2-user/DevOpsProject
+  - command: cp /home/ec2-user/DevOpsProject/index.html /usr/share/tomcat/webapps/ROOT/.
+    become: yes
+    become_user: root
