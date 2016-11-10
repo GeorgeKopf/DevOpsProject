@@ -1,1 +1,1 @@
-* * * * *    ansible-playbook DevOps.yaml
+* * * * *    ansible-playbook /home/ec2-user/DevOpsProject/DevOps.yaml
