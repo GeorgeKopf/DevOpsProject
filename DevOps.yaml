@@ -3,11 +3,6 @@
   remote_user: ec2-user
 
   tasks:
-#---  - command: git pull 
-#---    args:
-#---      chdir: /home/ec2-user/DevOpsProject
-#---    register: git_pull
-
   - name: clone repository
     git: repo=https://github.com/GeorgeKopf/DevOpsProject.git
          dest=/home/ec2-user/DevOpsProject
@@ -21,4 +16,8 @@
     become_user: root
     when: gitclone.changed
 
-  - command: curl -k https://52.201.234.9:8443/index.html
+  - uri: url=https://52.201.234.9:8443/index.html return_content=yes validate_certs=no
+    register: webpage
+
+  - action: fail
+    when: "'Hello Anne!' not in webpage.content"
