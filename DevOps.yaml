@@ -1,13 +1,24 @@
 ---
 - hosts: ip-172-31-54-232.ec2.internal 
   remote_user: ec2-user
-  tasks:
-  - command: git pull
-    args:
-      chdir: /home/ec2-user/DevOpsProject
 
-  - command: cp /home/ec2-user/DevOpsProject/index.html /usr/share/tomcat/webapps/ROOT/index.html
+  tasks:
+#---  - command: git pull 
+#---    args:
+#---      chdir: /home/ec2-user/DevOpsProject
+#---    register: git_pull
+
+  - name: clone repository
+    git: repo=https://github.com/GeorgeKopf/DevOpsProject.git
+         dest=/home/ec2-user/DevOpsProject
+         accept_hostkey=yes
+         force=yes
+    register: gitclone
+  
+  - name: copy
+    command: cp /home/ec2-user/DevOpsProject/index.html /usr/share/tomcat/webapps/ROOT/index.html
     become: yes
     become_user: root
+    when: gitclone.changed
 
   - command: curl -k https://52.201.234.9:8443/index.html
