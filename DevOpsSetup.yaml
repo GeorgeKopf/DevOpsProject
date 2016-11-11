@@ -1,10 +1,20 @@
 ---
 - hosts: ip-172-31-54-232.ec2.internal 
   remote_user: ec2-user
+
   tasks:
-  - command: git pull
-    args:
-      chdir: /home/ec2-user/DevOpsProject
+  - name: clone repository
+    git: repo=https://github.com/GeorgeKopf/DevOpsProject.git
+         dest=/home/ec2-user/DevOpsProject
+         accept_hostkey=yes
+         force=yes
+    register: gitclone
+
+  - name: copy
+    command: cp /home/ec2-user/DevOpsProject/index.html /usr/share/tomcat/webapps/ROOT/index.html
+    become: yes
+    become_user: root
+    when: gitclone.changed
 
   - command: "{{item}}"
     with_items:
@@ -16,8 +26,29 @@
      - cp /home/ec2-user/DevOpsProject/keystore /usr/share/tomcat/conf/keystore
      - rm -f /usr/share/tomcat/logs/*
      - systemctl start tomcat
+     - iptables -F
+     - iptables -P INPUT ACCEPT
+     - iptables -P FORWARD ACCEPT
+     - iptables -P OUTPUT ACCEPT
+     - iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+     - iptables -A INPUT -p icmp -j ACCEPT
+     - iptables -A INPUT -i lo -j ACCEPT
+     - iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+     - iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+     - iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8443 -j ACCEPT
+     - iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+     - iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
+     - iptables -A INPUT -j DROP
+     - ip6tables -F
+     - ip6tables -P INPUT DROP
+     - ip6tables -P FORWARD DROP
+     - ip6tables -P OUTPUT DROP
      - sleep 33
     become: yes
     become_user: root
 
-  - command: curl -k https://52.201.234.9:8443/index.html
+  - uri: url=https://52.201.234.9:8443/index.html return_content=yes validate_certs=no
+    register: webpage
+
+  - action: fail
+    when: "'Hello World!' not in webpage.content"

@@ -20,4 +20,4 @@
     register: webpage
 
   - action: fail
-    when: "'Hello Anne!' not in webpage.content"
+    when: "'Hello World!' not in webpage.content"
